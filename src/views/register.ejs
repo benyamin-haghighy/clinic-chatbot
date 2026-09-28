@@ -1,0 +1,39 @@
+<%- include('partials/head', {title: 'ثبت‌نام | Clinic AI'}) %>
+<main class="auth-page">
+  <section class="auth-brand">
+    <div class="brand-mark">✚</div><span class="eyebrow">CLINIC AI</span>
+    <h1>شروع یک گفت‌وگوی هوشمند</h1>
+    <p>با شماره موبایل خود ثبت‌نام کنید و گفتگوهای کلینیک را مدیریت کنید.</p>
+    <div class="brand-points"><span>✓ ثبت‌نام ساده با OTP</span><span>✓ گفت‌وگوهای ذخیره‌شده</span><span>✓ دستیار هوشمند کلینیک</span></div>
+  </section>
+  <section class="auth-card-wrap">
+    <div class="auth-card">
+      <div class="mobile-logo"><span class="brand-mark small">✚</span> Clinic AI</div>
+      <div class="auth-heading"><span class="step-label" id="registerLabel">ثبت‌نام</span><h2 id="registerTitle">حساب خود را بسازید</h2><p id="registerDesc">شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود.</p></div>
+      <form id="registerPhoneForm" class="auth-form">
+        <label for="registerPhone">شماره موبایل</label>
+        <input id="registerPhone" inputmode="numeric" maxlength="11" placeholder="09123456789" autocomplete="tel" required>
+        <button class="primary-btn" type="submit">دریافت کد تأیید <span>←</span></button>
+      </form>
+      <form id="registerOtpForm" class="auth-form hidden">
+        <label for="registerOtp">کد تأیید</label>
+        <input id="registerOtp" inputmode="numeric" maxlength="6" placeholder="کد ۶ رقمی" autocomplete="one-time-code" required>
+        <div class="otp-meta"><button type="button" class="text-btn" id="registerBack">تغییر شماره</button><span id="registerTimer"></span></div>
+        <button class="primary-btn" type="submit">تکمیل ثبت‌نام <span>←</span></button>
+      </form>
+      <div class="form-message" id="registerMessage" role="alert"></div>
+      <div class="auth-switch">قبلاً حساب دارید؟ <a href="/">وارد شوید</a></div>
+    </div>
+  </section>
+</main>
+<script>
+(() => {
+ const pf=document.getElementById('registerPhoneForm'), of=document.getElementById('registerOtpForm'), p=document.getElementById('registerPhone'), o=document.getElementById('registerOtp'), msg=document.getElementById('registerMessage'), timer=document.getElementById('registerTimer'), title=document.getElementById('registerTitle'), desc=document.getElementById('registerDesc'), label=document.getElementById('registerLabel'); let seconds=0,interval;
+ const show=(t,type='error')=>{msg.textContent=t;msg.className='form-message '+type}; const load=(f,on)=>{const b=f.querySelector('button[type=submit]');b.disabled=on;b.classList.toggle('loading',on)};
+ function start(){clearInterval(interval);seconds=120;timer.textContent='02:00';interval=setInterval(()=>{seconds--;timer.textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;if(seconds<=0){clearInterval(interval);timer.textContent='کد منقضی شد'}},1000)}
+ pf.onsubmit=async e=>{e.preventDefault();show('');load(pf,true);try{await api('/auth/register',{method:'POST',body:{phone:p.value.trim()}});show('کد تأیید ارسال شد.','success');pf.classList.add('hidden');of.classList.remove('hidden');label.textContent='تأیید شماره';title.textContent='تقریباً تمام است';desc.textContent='کد ۶ رقمی ارسال‌شده را وارد کنید.';start();o.focus()}catch(e){show(e.message)}finally{load(pf,false)}};
+ of.onsubmit=async e=>{e.preventDefault();show('');load(of,true);try{await api('/auth/login',{method:'POST',body:{phone:p.value.trim(),code:o.value.trim()}});location.href='/chat'}catch(e){show(e.message)}finally{load(of,false)}};
+ document.getElementById('registerBack').onclick=()=>{clearInterval(interval);of.classList.add('hidden');pf.classList.remove('hidden');label.textContent='ثبت‌نام';title.textContent='حساب خود را بسازید';desc.textContent='شماره موبایل خود را وارد کنید تا کد تأیید ارسال شود.';o.value='';show('')}
+})();
+</script>
+<%- include('partials/foot') %>

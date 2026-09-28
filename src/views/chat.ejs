@@ -1,0 +1,1429 @@
+```ejs
+<%- include('partials/head', {title: 'گفت‌وگو | Clinic AI'}) %>
+
+<div class="chat-app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-top">
+
+      <div class="brand-inline">
+
+        <div class="brand-mark small">✦</div>
+
+        <div>
+          <strong>Clinic AI</strong>
+          <small>دستیار هوشمند</small>
+        </div>
+
+      </div>
+
+      <button
+        class="icon-btn mobile-close"
+        id="closeSidebar"
+        type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <button
+      class="new-chat-btn"
+      id="newConversation"
+      type="button"
+    >
+      ＋ گفت‌وگوی جدید
+    </button>
+
+
+    <div class="conversation-title">
+      گفت‌وگوها
+    </div>
+
+
+    <div
+      class="conversation-list"
+      id="conversationList"
+    ></div>
+
+
+    <div class="sidebar-bottom">
+
+      <div class="user-mini">
+
+        <div class="avatar">
+          ش
+        </div>
+
+        <div>
+          <strong>کاربر</strong>
+          <small id="userPhone">
+            در حال بارگذاری...
+          </small>
+        </div>
+
+      </div>
+
+
+      <button
+        class="logout-btn"
+        id="logoutBtn"
+        type="button"
+      >
+        ↪ خروج
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- Main Chat -->
+  <main class="chat-main">
+
+    <header class="chat-header">
+
+      <button
+        class="icon-btn menu-btn"
+        id="openSidebar"
+        type="button"
+      >
+        ☰
+      </button>
+
+
+      <div class="current-chat">
+
+        <div>
+
+          <strong id="chatTitle">
+            گفت‌وگوی جدید
+          </strong>
+
+          <small>
+            <span class="status-dot"></span>
+            آنلاین
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="icon-btn"
+        id="renameBtn"
+        title="تغییر عنوان"
+        type="button"
+      >
+        ✎
+      </button>
+
+    </header>
+
+
+    <!-- Messages -->
+    <section
+      class="messages"
+      id="messages"
+    >
+
+      <div
+        class="welcome-state"
+        id="welcomeState"
+      >
+
+        <div class="welcome-icon">
+          ✦
+        </div>
+
+
+        <h1>
+          سلام، چطور می‌تونم کمکت کنم؟
+        </h1>
+
+
+        <p>
+          من دستیار هوشمند Clinic AI هستم.
+          سوالت رو بنویس تا با هم شروع کنیم.
+        </p>
+
+
+        <div class="suggestions">
+
+          <button
+            type="button"
+            data-message="سلام، خودت رو معرفی می‌کنی؟"
+          >
+            👋 خودت رو معرفی می‌کنی؟
+          </button>
+
+
+          <button
+            type="button"
+            data-message="چه کمکی می‌تونی به من بکنی؟"
+          >
+            💡 چه کمکی می‌تونی بکنی؟
+          </button>
+
+
+          <button
+            type="button"
+            data-message="چطور می‌تونم از Clinic AI استفاده کنم؟"
+          >
+            ❓ چطور می‌تونم از Clinic AI استفاده کنم؟
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- Composer -->
+    <footer class="composer-wrap">
+
+      <div class="composer">
+
+        <textarea
+          id="messageInput"
+          rows="1"
+          placeholder="پیامتان را بنویسید..."
+        ></textarea>
+
+
+        <button
+          class="send-btn"
+          id="sendBtn"
+          type="button"
+          title="ارسال"
+        >
+          ➤
+        </button>
+
+      </div>
+
+
+      <div class="composer-note">
+        برای ارسال Enter را بزنید • برای خط جدید Shift + Enter
+      </div>
+
+    </footer>
+
+  </main>
+
+</div>
+
+
+<!-- Rename Modal -->
+<div
+  class="modal hidden"
+  id="renameModal"
+>
+
+  <div class="modal-card">
+
+    <h3>
+      تغییر عنوان گفتگو
+    </h3>
+
+
+    <input
+      type="text"
+      id="renameInput"
+      placeholder="عنوان جدید"
+    >
+
+
+    <div class="modal-actions">
+
+      <button
+        class="secondary-btn"
+        id="cancelRename"
+        type="button"
+      >
+        انصراف
+      </button>
+
+
+      <button
+        class="primary-btn compact"
+        id="saveRename"
+        type="button"
+      >
+        ذخیره
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- New Conversation Modal -->
+<div
+  class="modal hidden"
+  id="newModal"
+>
+
+  <div class="modal-card">
+
+    <h3>
+      گفت‌وگوی جدید
+    </h3>
+
+
+    <input
+      type="text"
+      id="newInput"
+      maxlength="100"
+      placeholder="عنوان گفت‌وگو (اختیاری)"
+    >
+
+
+    <div class="modal-actions">
+
+      <button
+        class="secondary-btn"
+        id="cancelNew"
+        type="button"
+      >
+        انصراف
+      </button>
+
+
+      <button
+        class="primary-btn compact"
+        id="saveNew"
+        type="button"
+      >
+        ایجاد
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- Delete Modal -->
+<div
+  class="modal hidden"
+  id="deleteModal"
+>
+
+  <div class="modal-card">
+
+    <h3>
+      حذف گفتگو
+    </h3>
+
+
+    <p>
+      آیا از حذف این گفتگو مطمئن هستید؟
+    </p>
+
+
+    <div class="modal-actions">
+
+      <button
+        class="secondary-btn"
+        id="cancelDelete"
+        type="button"
+      >
+        انصراف
+      </button>
+
+
+      <button
+        class="danger-btn"
+        id="confirmDelete"
+        type="button"
+      >
+        حذف
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+(async () => {
+
+  const state = {
+    conversations: [],
+    activeId: null,
+    sending: false
+  };
+
+
+  const list =
+    document.getElementById('conversationList');
+
+  const messages =
+    document.getElementById('messages');
+
+  const input =
+    document.getElementById('messageInput');
+
+  const send =
+    document.getElementById('sendBtn');
+
+  const welcome =
+    document.getElementById('welcomeState');
+
+  const title =
+    document.getElementById('chatTitle');
+
+  const userPhone =
+    document.getElementById('userPhone');
+
+
+  const esc = (s) =>
+    String(s ?? '').replace(
+      /[&<>"']/g,
+      c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[c])
+    );
+
+
+  const md = (s) =>
+    esc(s)
+      .replace(
+        /^### (.*)$/gm,
+        '<h3>$1</h3>'
+      )
+      .replace(
+        /^## (.*)$/gm,
+        '<h2>$1</h2>'
+      )
+      .replace(
+        /\*\*(.*?)\*\*/g,
+        '<strong>$1</strong>'
+      )
+      .replace(
+        /\n/g,
+        '<br>'
+      );
+
+
+  const notify = (
+    text,
+    type = 'error'
+  ) => {
+
+    let x =
+      document.getElementById('toast');
+
+    if (!x) {
+
+      x =
+        document.createElement('div');
+
+      x.id = 'toast';
+
+      document.body.appendChild(x);
+
+    }
+
+    x.className =
+      'toast ' + type;
+
+    x.textContent = text;
+
+    setTimeout(
+      () => x.remove(),
+      3200
+    );
+
+  };
+
+
+  function renderList() {
+
+    list.innerHTML = '';
+
+
+    if (!state.conversations.length) {
+
+      list.innerHTML =
+        '<div class="list-empty">هنوز گفت‌وگویی ندارید.</div>';
+
+      return;
+
+    }
+
+
+    state.conversations.forEach(c => {
+
+      const item =
+        document.createElement('div');
+
+      item.className =
+        'conversation-item ' +
+        (
+          c.id === state.activeId
+            ? 'active'
+            : ''
+        );
+
+
+      item.innerHTML = `
+
+        <button
+          class="conversation-open"
+          type="button"
+        >
+
+          <span class="conv-icon">
+            ◌
+          </span>
+
+          <span class="conv-name">
+            ${esc(c.title || 'گفت‌وگوی جدید')}
+          </span>
+
+        </button>
+
+
+        <div class="conv-actions">
+
+          <button
+            class="rename-small"
+            title="تغییر عنوان"
+            type="button"
+          >
+            ✎
+          </button>
+
+
+          <button
+            class="delete-small"
+            title="حذف"
+            type="button"
+          >
+            ×
+          </button>
+
+        </div>
+
+      `;
+
+
+      item
+        .querySelector('.conversation-open')
+        .onclick =
+          () => selectConversation(c.id);
+
+
+      item
+        .querySelector('.rename-small')
+        .onclick = e => {
+
+          e.stopPropagation();
+
+          openRename(c);
+
+        };
+
+
+      item
+        .querySelector('.delete-small')
+        .onclick = e => {
+
+          e.stopPropagation();
+
+          openDelete(c);
+
+        };
+
+
+      list.appendChild(item);
+
+    });
+
+  }
+
+
+  function renderMessages(items) {
+
+    messages.innerHTML = '';
+
+
+    if (!items.length) {
+
+      messages.appendChild(welcome);
+
+      welcome.style.display = 'flex';
+
+      return;
+
+    }
+
+
+    welcome.style.display = 'none';
+
+
+    items.forEach(m => {
+
+      const isAssistant =
+        String(m.role).toLowerCase() === 'assistant';
+
+
+      const row =
+        document.createElement('div');
+
+
+      row.className =
+        'message-row ' +
+        (
+          isAssistant
+            ? 'assistant'
+            : 'user'
+        );
+
+
+      row.innerHTML = `
+
+        <div class="message-avatar">
+          ${isAssistant ? '✦' : 'شما'}
+        </div>
+
+
+        <div class="bubble">
+
+          ${
+            isAssistant
+              ? md(m.content)
+              : esc(m.content).replace(
+                  /\n/g,
+                  '<br>'
+                )
+          }
+
+        </div>
+
+      `;
+
+
+      messages.appendChild(row);
+
+    });
+
+
+    messages.scrollTop =
+      messages.scrollHeight;
+
+  }
+
+
+  async function loadMessages(id) {
+
+    const r =
+      await api(
+        '/message/conversation/' + id
+      );
+
+
+    renderMessages(
+      r.messages || []
+    );
+
+  }
+
+
+  async function loadConversations() {
+
+    const r =
+      await api('/conversation/');
+
+
+    state.conversations =
+      r.conversations || [];
+
+
+    renderList();
+
+
+    if (state.conversations.length) {
+
+      const id =
+        state.activeId &&
+        state.conversations.some(
+          c => c.id === state.activeId
+        )
+          ? state.activeId
+          : state.conversations[0].id;
+
+
+      await selectConversation(id);
+
+    } else {
+
+      state.activeId = null;
+
+      title.textContent =
+        'گفت‌وگوی جدید';
+
+      renderMessages([]);
+
+    }
+
+  }
+
+
+  async function selectConversation(id) {
+
+    state.activeId = id;
+
+
+    const c =
+      state.conversations.find(
+        x => x.id === id
+      );
+
+
+    if (c) {
+
+      title.textContent =
+        c.title || 'گفت‌وگو';
+
+    }
+
+
+    renderList();
+
+
+    try {
+
+      await loadMessages(id);
+
+    } catch (e) {
+
+      notify(e.message);
+
+    }
+
+  }
+
+
+  async function createConversation(convTitle = 'گفت‌وگوی جدید') {
+
+    try {
+
+      const r =
+        await api(
+          '/conversation/',
+          {
+            method: 'POST',
+            body: {
+              title: convTitle
+            }
+          }
+        );
+
+
+      state.conversations.unshift(
+        r.conversation
+      );
+
+
+      renderList();
+
+
+      await selectConversation(
+        r.conversation.id
+      );
+
+
+      notify(
+        'گفت‌وگوی جدید ایجاد شد',
+        'success'
+      );
+
+
+    } catch (e) {
+
+      notify(e.message);
+
+    }
+
+  }
+
+
+  async function sendMessage(text) {
+
+    if (
+      !text.trim() ||
+      state.sending
+    ) {
+      return;
+    }
+
+
+    if (!state.activeId) {
+
+      await createConversation();
+
+    }
+
+
+    if (!state.activeId) {
+      return;
+    }
+
+
+    state.sending = true;
+
+    send.disabled = true;
+
+    input.disabled = true;
+
+
+    const temp =
+      document.createElement('div');
+
+
+    temp.className =
+      'message-row user';
+
+
+    temp.innerHTML = `
+
+      <div class="message-avatar">
+        شما
+      </div>
+
+      <div class="bubble">
+        ${esc(text).replace(
+          /\n/g,
+          '<br>'
+        )}
+      </div>
+
+    `;
+
+
+    welcome.style.display =
+      'none';
+
+
+    messages.appendChild(temp);
+
+
+    messages.scrollTop =
+      messages.scrollHeight;
+
+
+    const typing =
+      document.createElement('div');
+
+
+    typing.className =
+      'message-row assistant typing-row';
+
+
+    typing.innerHTML = `
+
+      <div class="message-avatar">
+        ✦
+      </div>
+
+      <div class="bubble typing">
+
+        <i></i>
+        <i></i>
+        <i></i>
+
+      </div>
+
+    `;
+
+
+    messages.appendChild(typing);
+
+
+    messages.scrollTop =
+      messages.scrollHeight;
+
+
+    try {
+
+      const r =
+        await api(
+          '/message/conversation/' +
+          state.activeId,
+          {
+            method: 'POST',
+            body: {
+              content: text
+            }
+          }
+        );
+
+
+      typing.remove();
+
+
+      const bot =
+        r.botMessage;
+
+
+      const row =
+        document.createElement('div');
+
+
+      row.className =
+        'message-row assistant';
+
+
+      row.innerHTML = `
+
+        <div class="message-avatar">
+          ✦
+        </div>
+
+        <div class="bubble">
+          ${md(bot.content)}
+        </div>
+
+      `;
+
+
+      messages.appendChild(row);
+
+
+      messages.scrollTop =
+        messages.scrollHeight;
+
+
+    } catch (e) {
+
+      typing.remove();
+
+      notify(e.message);
+
+      await loadMessages(
+        state.activeId
+      );
+
+
+    } finally {
+
+      state.sending = false;
+
+      send.disabled = false;
+
+      input.disabled = false;
+
+      input.focus();
+
+    }
+
+  }
+
+
+  input.addEventListener(
+    'input',
+    () => {
+
+      input.style.height = 'auto';
+
+      input.style.height =
+        Math.min(
+          input.scrollHeight,
+          140
+        ) + 'px';
+
+    }
+  );
+
+
+  input.addEventListener(
+    'keydown',
+    e => {
+
+      if (
+        e.key === 'Enter' &&
+        !e.shiftKey
+      ) {
+
+        e.preventDefault();
+
+        const text =
+          input.value.trim();
+
+        input.value = '';
+
+        input.style.height =
+          'auto';
+
+        sendMessage(text);
+
+      }
+
+    }
+  );
+
+
+  send.onclick = () => {
+
+    const text =
+      input.value.trim();
+
+    if (!text) {
+      return;
+    }
+
+    input.value = '';
+
+    input.style.height =
+      'auto';
+
+    sendMessage(text);
+
+  };
+
+
+  document
+    .querySelectorAll(
+      '.suggestions button'
+    )
+    .forEach(button => {
+
+      button.onclick = () => {
+
+        const text =
+          button.dataset.message;
+
+        input.value = '';
+
+        sendMessage(text);
+
+      };
+
+    });
+
+
+  const newModal =
+    document.getElementById(
+      'newModal'
+    );
+
+
+  const newInput =
+    document.getElementById(
+      'newInput'
+    );
+
+
+  function openNewModal() {
+
+    newInput.value = '';
+
+    newModal.classList.remove(
+      'hidden'
+    );
+
+    newInput.focus();
+
+  }
+
+
+  async function submitNewModal() {
+
+    const t =
+      newInput.value.trim() ||
+      'گفت‌وگوی جدید';
+
+    newModal.classList.add(
+      'hidden'
+    );
+
+    await createConversation(t);
+
+  }
+
+
+  document
+    .getElementById('newConversation')
+    .onclick =
+      openNewModal;
+
+
+  document
+    .getElementById('cancelNew')
+    .onclick =
+      () => {
+
+        newModal.classList.add(
+          'hidden'
+        );
+
+      };
+
+
+  document
+    .getElementById('saveNew')
+    .onclick =
+      submitNewModal;
+
+
+  newInput.addEventListener(
+    'keydown',
+    e => {
+
+      if (e.key === 'Enter') {
+
+        e.preventDefault();
+
+        submitNewModal();
+
+      }
+
+    }
+  );
+
+
+  document
+    .getElementById('logoutBtn')
+    .onclick =
+      async () => {
+
+        try {
+
+          await api(
+            '/auth/logout',
+            {
+              method: 'POST'
+            }
+          );
+
+        } finally {
+
+          location.href = '/';
+
+        }
+
+      };
+
+
+  const renameModal =
+    document.getElementById(
+      'renameModal'
+    );
+
+
+  const renameInput =
+    document.getElementById(
+      'renameInput'
+    );
+
+
+  let renameTarget = null;
+
+
+  function openRename(c) {
+
+    renameTarget = c;
+
+    renameInput.value =
+      c.title || '';
+
+
+    renameModal.classList.remove(
+      'hidden'
+    );
+
+
+    renameInput.focus();
+
+  }
+
+
+  document
+    .getElementById('cancelRename')
+    .onclick =
+      () => {
+
+        renameModal.classList.add(
+          'hidden'
+        );
+
+      };
+
+
+  document
+    .getElementById('saveRename')
+    .onclick =
+      async () => {
+
+        const t =
+          renameInput.value.trim();
+
+
+        if (!t) {
+          return;
+        }
+
+
+        try {
+
+          await api(
+            '/conversation/' +
+            renameTarget.id,
+            {
+              method: 'PUT',
+              body: {
+                title: t
+              }
+            }
+          );
+
+
+          renameTarget.title = t;
+
+          title.textContent = t;
+
+          renderList();
+
+
+          renameModal.classList.add(
+            'hidden'
+          );
+
+
+          notify(
+            'عنوان گفتگو تغییر کرد',
+            'success'
+          );
+
+
+        } catch (e) {
+
+          notify(e.message);
+
+        }
+
+      };
+
+
+  const deleteModal =
+    document.getElementById(
+      'deleteModal'
+    );
+
+
+  let deleteTarget = null;
+
+
+  function openDelete(c) {
+
+    deleteTarget = c;
+
+    deleteModal.classList.remove(
+      'hidden'
+    );
+
+  }
+
+
+  document
+    .getElementById('cancelDelete')
+    .onclick =
+      () => {
+
+        deleteModal.classList.add(
+          'hidden'
+        );
+
+      };
+
+
+  document
+    .getElementById('confirmDelete')
+    .onclick =
+      async () => {
+
+        try {
+
+          await api(
+            '/conversation/' +
+            deleteTarget.id,
+            {
+              method: 'DELETE'
+            }
+          );
+
+
+          if (
+            state.activeId ===
+            deleteTarget.id
+          ) {
+
+            state.activeId = null;
+
+          }
+
+
+          state.conversations =
+            state.conversations.filter(
+              c =>
+                c.id !== deleteTarget.id
+            );
+
+
+          deleteModal.classList.add(
+            'hidden'
+          );
+
+
+          renderList();
+
+
+          if (state.conversations.length) {
+
+            await selectConversation(
+              state.conversations[0].id
+            );
+
+          } else {
+
+            title.textContent =
+              'گفت‌وگوی جدید';
+
+            renderMessages([]);
+
+          }
+
+
+          notify(
+            'گفت‌وگو حذف شد',
+            'success'
+          );
+
+
+        } catch (e) {
+
+          notify(e.message);
+
+        }
+
+      };
+
+
+  document
+    .getElementById('renameBtn')
+    .onclick =
+      () => {
+
+        const c =
+          state.conversations.find(
+            x =>
+              x.id === state.activeId
+          );
+
+
+        if (c) {
+          openRename(c);
+        }
+
+      };
+
+
+  const sidebar =
+    document.getElementById(
+      'sidebar'
+    );
+
+
+  document
+    .getElementById('openSidebar')
+    .onclick =
+      () => {
+
+        sidebar.classList.add(
+          'open'
+        );
+
+      };
+
+
+  document
+    .getElementById('closeSidebar')
+    .onclick =
+      () => {
+
+        sidebar.classList.remove(
+          'open'
+        );
+
+      };
+
+
+  /*
+   * Chat initialization
+   */
+
+  console.log(
+    'CHAT EJS LOADED'
+  );
+
+
+  try {
+
+    const me =
+      await api('/auth/me');
+
+
+    console.log(
+      'ME:',
+      me
+    );
+
+
+    userPhone.textContent =
+      me.user?.phone ||
+      me.phone ||
+      'کاربر';
+
+
+    await loadConversations();
+
+
+  } catch (e) {
+
+    console.error(
+      'CHAT ERROR:',
+      e
+    );
+
+
+    alert(
+      'CHAT ERROR: ' +
+      e.message
+    );
+
+  }
+
+})();
+
+</script>
+
+<%- include('partials/foot') %>
+```

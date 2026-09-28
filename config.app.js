@@ -1,0 +1,28 @@
+require('dotenv').config()
+module.exports = {
+    server:{
+        port:process.env.PORT
+    },
+    accessToken:{
+        secret:process.env.ACCESSTOKEN_SECRET,
+        expiresIn:process.env.ACCESSTOKEN_EXPIRESIN
+    },
+    refreshToken:{
+        secret:process.env.REFRESHTOKEN_SECRET,
+        expiresIn:process.env.REFRESHTOKEN_EXPIRESIN
+    },
+    redis:{
+        uri:process.env.REDIS_URI
+    },
+    cookie:{
+        secret:process.env.COOKIE_PARSER
+    },
+    api_key:{
+        key:process.env.OPENROUTER_API_KEY
+    },
+    sms:{
+        apiKey:process.env.SMS_API_KEY,
+        pattern:process.env.SMS_PATTERN_CODE,
+        lineNumber:process.env.SMS_LINE_NUMBER
+    }
+}

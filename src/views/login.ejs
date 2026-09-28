@@ -1,0 +1,63 @@
+<%- include('partials/head', {title: 'ورود | Clinic AI'}) %>
+<main class="auth-page">
+  <section class="auth-brand">
+    <div class="brand-mark">✚</div>
+    <span class="eyebrow">CLINIC AI</span>
+    <h1>دستیار هوشمند کلینیک</h1>
+    <p>پاسخ‌گویی سریع و هوشمند بر اساس اطلاعات کلینیک.</p>
+    <div class="brand-points">
+      <span>✓ گفت‌وگوی شخصی با دستیار</span>
+      <span>✓ نگهداری گفتگوهای شما</span>
+      <span>✓ پاسخ بر اساس اطلاعات کلینیک</span>
+    </div>
+  </section>
+
+  <section class="auth-card-wrap">
+    <div class="auth-card" id="loginCard">
+      <div class="mobile-logo"><span class="brand-mark small">✚</span> Clinic AI</div>
+      <div class="auth-heading">
+        <span class="step-label" id="loginStepLabel">ورود به حساب</span>
+        <h2 id="loginTitle">خوش آمدید</h2>
+        <p id="loginDescription">شماره موبایل خود را وارد کنید تا کد تأیید برای شما ارسال شود.</p>
+      </div>
+
+      <form id="loginPhoneForm" class="auth-form">
+        <label for="loginPhone">شماره موبایل</label>
+        <input id="loginPhone" name="phone" inputmode="numeric" maxlength="11" placeholder="09123456789" autocomplete="tel" required>
+        <button class="primary-btn" type="submit">دریافت کد تأیید <span>←</span></button>
+      </form>
+
+      <form id="loginOtpForm" class="auth-form hidden">
+        <label for="loginOtp">کد تأیید</label>
+        <input id="loginOtp" name="code" inputmode="numeric" maxlength="6" placeholder="کد ۶ رقمی" autocomplete="one-time-code" required>
+        <div class="otp-meta"><button type="button" class="text-btn" id="loginBack">تغییر شماره</button><span id="loginTimer"></span></div>
+        <button class="primary-btn" type="submit">ورود به Clinic AI <span>←</span></button>
+      </form>
+
+      <div class="form-message" id="loginMessage" role="alert"></div>
+      <div class="auth-switch">حساب ندارید؟ <a href="/register">ثبت‌نام کنید</a></div>
+    </div>
+  </section>
+</main>
+<script>
+(() => {
+  const phoneForm=document.getElementById('loginPhoneForm'), otpForm=document.getElementById('loginOtpForm');
+  const phone=document.getElementById('loginPhone'), otp=document.getElementById('loginOtp');
+  const msg=document.getElementById('loginMessage'), timer=document.getElementById('loginTimer');
+  const title=document.getElementById('loginTitle'), desc=document.getElementById('loginDescription'), label=document.getElementById('loginStepLabel');
+  let seconds=0, interval;
+  const show=(text,type='error')=>{msg.textContent=text;msg.className='form-message '+type};
+  const setLoading=(form,on)=>{const b=form.querySelector('button[type="submit"]');b.disabled=on;b.classList.toggle('loading',on)};
+  function startTimer(){clearInterval(interval);seconds=120;timer.textContent='02:00';interval=setInterval(()=>{seconds--;timer.textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;if(seconds<=0){clearInterval(interval);timer.textContent='کد منقضی شد'}},1000)}
+  phoneForm.addEventListener('submit',async e=>{e.preventDefault();show('');setLoading(phoneForm,true);
+    try{const r=await api('/auth/register',{method:'POST',body:{phone:phone.value.trim()}});show('کد تأیید ارسال شد.','success');phoneForm.classList.add('hidden');otpForm.classList.remove('hidden');label.textContent='تأیید شماره';title.textContent='کد را وارد کنید';desc.textContent='کد ۶ رقمی ارسال‌شده به شماره شما را وارد کنید.';startTimer();otp.focus()}
+    catch(e){show(e.message)} finally{setLoading(phoneForm,false)}
+  });
+  otpForm.addEventListener('submit',async e=>{e.preventDefault();show('');setLoading(otpForm,true);
+    try{await api('/auth/login',{method:'POST',body:{phone:phone.value.trim(),code:otp.value.trim()}});location.href='/chat'}
+    catch(e){show(e.message)} finally{setLoading(otpForm,false)}
+  });
+  document.getElementById('loginBack').onclick=()=>{clearInterval(interval);otpForm.classList.add('hidden');phoneForm.classList.remove('hidden');label.textContent='ورود به حساب';title.textContent='خوش آمدید';desc.textContent='شماره موبایل خود را وارد کنید تا کد تأیید برای شما ارسال شود.';otp.value='';show('')}
+})();
+</script>
+<%- include('partials/foot') %>

@@ -2,262 +2,444 @@
 
 A Persian (RTL) chatbot that answers patients' questions **using only the clinic's own information** — visiting rules, appointment cancellation, blood-test fasting, MRI preparation and more.
 
-Instead of letting an LLM guess, every question is matched against the clinic's knowledge base with **embeddings + cosine similarity** (Retrieval-Augmented Generation). The model only sees the most relevant documents, and if nothing relevant is found the bot honestly says it doesn't have enough information.
+Instead of letting an LLM guess, every question is matched against the clinic's knowledge base using **embeddings + cosine similarity** (Retrieval-Augmented Generation). The model only receives the most relevant documents, and if no relevant information is found, the bot honestly says that it doesn't have enough information.
 
-> ⚠️ **Disclaimer:** This is a personal learning project. The bot provides general clinic information only and is **not** a substitute for medical advice.
+> ⚠️ **Disclaimer:** This is a personal learning project. The bot provides general clinic information only and is **not a substitute for medical advice**.
 
 ---
 
 ## ✨ Features
 
-- **Grounded answers (RAG)** — replies are built from retrieved clinic documents, not from the model's imagination
-- **Similarity threshold** — if no document is relevant enough, the bot answers "not enough information" without calling the LLM
-- **Follow-up question handling** — short questions like *"how many hours?"* are also searched together with the previous user message, and the better match wins
-- **OTP login with phone number** — SMS code stored in Redis with a 2-minute expiry
-- **JWT authentication** — access & refresh tokens in signed, `httpOnly` cookies
-- **Multiple conversations per user** — create, rename, delete, with persisted history
-- **Conversation memory** — recent messages are sent to the model for context
-- **Persian RTL chat UI** — server-rendered with EJS, responsive sidebar, typing indicator
-- **Free-tier friendly** — uses OpenRouter models for both chat and embeddings
+* **Grounded answers (RAG)** — answers are generated from retrieved clinic documents rather than the model's general knowledge
+* **Similarity threshold** — if no document is relevant enough, the bot responds without calling the LLM
+* **Follow-up question handling** — short questions such as *"how many hours?"* are searched together with the previous user message
+* **OTP authentication** — login and registration using a phone number and SMS verification code
+* **Redis OTP storage** — OTP codes are stored in Redis with a 2-minute expiration
+* **JWT authentication** — access and refresh tokens stored in signed, `httpOnly` cookies
+* **Multiple conversations** — users can create, rename and delete conversations
+* **Conversation history** — messages are persisted and previous messages can be used as context
+* **Persian RTL interface** — responsive chat interface built with EJS and vanilla JavaScript
+* **Knowledge-base based answers** — the AI is restricted to information retrieved from the clinic knowledge base
 
 ---
 
-## 🧠 How it works
+## 🧠 How It Works
 
-```mermaid
-flowchart TD
-    A[User question] --> B[Create embedding of the question]
-    B --> C[Cosine similarity against all clinic documents]
-    C --> D{Follow-up question?}
-    D -- yes --> E[Also search: previous message + current message<br/>keep the better result]
-    D -- no --> F
-    E --> F{Best similarity >= threshold?}
-    F -- no --> G["Reply: not enough information<br/>(no LLM call)"]
-    F -- yes --> H[Take top 2 documents]
-    H --> I[LLM with system prompt:<br/>answer ONLY from these documents]
-    I --> J[Answer saved and shown in chat]
+The project uses a simple **Retrieval-Augmented Generation (RAG)** pipeline.
+
+```text
+User Question
+      │
+      ▼
+Create Question Embedding
+      │
+      ▼
+Compare With Clinic Documents
+      │
+      ▼
+Cosine Similarity
+      │
+      ▼
+Is Similarity Above Threshold?
+      │
+   ┌──┴───┐
+   │      │
+  No     Yes
+   │      │
+   ▼      ▼
+No Info   Select Top Documents
+Response       │
+               ▼
+        Send Context to LLM
+               │
+               ▼
+        Generate Persian Answer
+               │
+               ▼
+          Save Message
 ```
 
-1. Clinic knowledge is split into small, single-topic documents (title + content). Each one is embedded once and stored in MySQL.
-2. For each user message, the app embeds the question and compares it with every stored document using cosine similarity.
-3. If the best score is below the threshold, the bot refuses politely. Otherwise the top documents are injected into the system prompt.
-4. The LLM is instructed to answer in Persian, briefly, and only from the provided text.
+### RAG Pipeline
+
+1. The clinic's knowledge is divided into small, single-topic documents.
+2. Each document is converted into an embedding and stored in MySQL.
+3. When a user sends a message, the question is converted into an embedding.
+4. The question embedding is compared with the stored document embeddings using cosine similarity.
+5. If the best similarity score is below the configured threshold, the bot does not call the LLM.
+6. If relevant information is found, the most relevant documents are selected.
+7. The selected documents are provided to the LLM as context.
+8. The LLM generates a short Persian answer based only on the provided information.
+9. The user's message and the bot's response are saved in the conversation.
 
 ---
 
-## 🛠 Tech stack
+## 🛠 Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Runtime / server | Node.js, Express 5 |
-| Database | MySQL with Sequelize ORM & migrations |
-| Cache / OTP store | Redis (ioredis) |
-| Auth | JWT, Passport (cookie strategy), OTP via SMS |
-| AI | OpenRouter API (chat completions + embeddings) |
-| Validation | Yup |
-| Frontend | EJS templates, vanilla JavaScript, custom CSS (RTL) |
+| Layer             | Technology                   |
+| ----------------- | ---------------------------- |
+| Runtime / Server  | Node.js, Express 5           |
+| Database          | MySQL                        |
+| ORM               | Sequelize                    |
+| Cache / OTP Store | Redis, ioredis               |
+| Authentication    | JWT, Passport                |
+| Validation        | Yup                          |
+| AI                | OpenRouter API               |
+| Embeddings        | OpenRouter API               |
+| Frontend          | EJS, Vanilla JavaScript, CSS |
+| Architecture      | REST API + RAG               |
 
 ---
 
-## 📁 Project structure
+## 📁 Project Structure
 
-```
+```text
 .
-├── app.js                  # Express app, routes, views
-├── server.js               # Starts the server, checks DB & Redis
-├── relation.js             # Sequelize models & associations
-├── config.app.js           # Reads all settings from .env
-├── seed.js                 # Embeds & stores the clinic documents
-└── src
-    ├── config/             # Sequelize connection & CLI config
-    ├── migrations/         # users, conversations, messages, clinic_documents
-    ├── clinic.txt          # The clinic's knowledge base (one "## Title" block per document)
+├── app.js
+├── server.js
+├── relation.js
+├── config.app.js
+├── seed.js
+├── package.json
+├── README.md
+│
+├── docs/
+│   ├── login.png
+│   ├── register.png
+│   └── chat.png
+│
+└── src/
+    ├── config/
+    │   ├── db.js
+    │   └── config.json
+    │
+    ├── migrations/
+    │   ├── users
+    │   ├── conversations
+    │   ├── messages
+    │   └── clinic_documents
+    │
+    ├── clinic.txt
+    │
     ├── models/
+    │
     ├── module/
-    │   ├── auth/           # OTP login, logout, current user
-    │   ├── conversations/  # CRUD for conversations
-    │   └── messages/       # Chat endpoint (RAG pipeline lives here)
+    │   ├── auth/
+    │   ├── conversations/
+    │   └── messages/
+    │
     ├── service/
-    │   ├── ai.services.js          # Chat completion call + system prompt
-    │   ├── embedding.services.js   # Embedding call
-    │   └── sendOtpCode.js          # SMS provider call
+    │   ├── ai.services.js
+    │   ├── embedding.services.js
+    │   └── sendOtpCode.js
+    │
     ├── utils/
-    │   ├── searchVecto.js          # Embed query + rank documents
-    │   ├── compareEmnedding.js     # Cosine similarity
-    │   ├── saveChunk.js            # Add a document to the knowledge base
-    │   └── ...                     # OTP helpers, cookie strategy
-    ├── views/              # login, register, chat (EJS)
-    └── public/             # CSS & client-side JS
+    │   ├── searchVecto.js
+    │   ├── compareEmnedding.js
+    │   ├── saveChunk.js
+    │   └── ...
+    │
+    ├── views/
+    │   ├── login
+    │   ├── register
+    │   └── chat
+    │
+    └── public/
+        ├── css/
+        └── js/
 ```
 
 ---
 
-## 🚀 Getting started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- MySQL
-- Redis
-- An [OpenRouter](https://openrouter.ai) API key
-- An SMS provider account for OTP codes (the project uses Iranpayamak's pattern API)
+Before running the project, make sure you have:
 
-### 1. Clone & install
+* Node.js 18+
+* MySQL
+* Redis
+* OpenRouter API key
+* SMS provider account for OTP authentication
+
+---
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/benyamin-haghighy/clinic-chatbot.git
 cd clinic-chatbot
+```
+
+Install dependencies:
+
+```bash
 npm install
 ```
 
-### 2. Configure environment variables
+---
+
+### 2. Configure Environment Variables
+
+Create your `.env` file:
 
 ```bash
 cp .env.example .env
 ```
 
-Then fill in `.env`:
+Then configure the required variables:
 
-| Variable | Description |
-|---|---|
-| `PORT` | Port the server listens on |
-| `ACCESSTOKEN_SECRET` / `ACCESSTOKEN_EXPIRESIN` | Secret and lifetime of the access JWT |
-| `REFRESHTOKEN_SECRET` / `REFRESHTOKEN_EXPIRESIN` | Secret and lifetime of the refresh JWT |
-| `COOKIE_PARSER` | Secret used to sign cookies |
-| `REDIS_URI` | Redis connection string, e.g. `redis://127.0.0.1:6379` |
-| `SMS_API_KEY` / `SMS_PATTERN_CODE` | SMS provider credentials and OTP template code |
-| `OPENROUTER_API_KEY` | OpenRouter API key |
+| Variable                 | Description              |
+| ------------------------ | ------------------------ |
+| `PORT`                   | Server port              |
+| `ACCESSTOKEN_SECRET`     | Access token secret      |
+| `ACCESSTOKEN_EXPIRESIN`  | Access token expiration  |
+| `REFRESHTOKEN_SECRET`    | Refresh token secret     |
+| `REFRESHTOKEN_EXPIRESIN` | Refresh token expiration |
+| `COOKIE_PARSER`          | Cookie signing secret    |
+| `REDIS_URI`              | Redis connection string  |
+| `SMS_API_KEY`            | SMS provider API key     |
+| `SMS_PATTERN_CODE`       | OTP SMS pattern          |
+| `OPENROUTER_API_KEY`     | OpenRouter API key       |
 
-Use long random values for all secrets, e.g.:
+For generating a secure secret:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-### 3. Set up the database
+Use a different random value for each secret.
 
-Adjust credentials in `src/config/db.js` and `src/config/config.json` if needed, then:
+---
 
-```bash
-npm run db:create    # create the MySQL database (skip if it already exists)
-npm run db:migrate   # create the tables
-```
+## 🗄 Database Setup
 
-### 4. Add the clinic's knowledge
-
-The bot knows nothing until you add documents. Write them in `src/clinic.txt`. Every document starts with a `## Title` line, followed by its content:
-
-```
-## Blood test preparation
-For a fasting blood sugar test the patient must fast for at least 8 hours. Plain water is allowed...
-
-## Cancelling an appointment
-Cancellation must be done at least 2 hours before the appointment...
-```
+Configure your MySQL credentials in the project's database configuration.
 
 Then run:
+
+```bash
+npm run db:create
+npm run db:migrate
+```
+
+If the database already exists, you can skip `db:create`.
+
+---
+
+## 🧠 Add Clinic Knowledge
+
+The chatbot uses `src/clinic.txt` as its knowledge base.
+
+Each document should start with a `## Title` heading.
+
+Example:
+
+```text
+## Blood test preparation
+
+For a fasting blood sugar test, the patient must fast for at least 8 hours.
+Plain water is allowed.
+
+## Cancelling an appointment
+
+Appointment cancellation must be done at least 2 hours before the appointment.
+```
+
+Each topic should preferably be stored as a separate document.
+
+After editing the knowledge base, run:
 
 ```bash
 npm run seed
 ```
 
-The seed script reads `src/clinic.txt`, clears the `clinic_documents` table, creates an embedding for each document (via `src/utils/saveChunk.js`) and stores it in MySQL. It is safe to run again after editing the file. If the file is empty, nothing is deleted.
+The seed process:
 
-**Tips for good answers**
+1. Reads `src/clinic.txt`
+2. Splits the content into documents
+3. Creates embeddings
+4. Stores the documents and embeddings in MySQL
 
-- Keep **one topic per document** (e.g. separate documents for blood tests, MRI and cancellation).
-- Write documents the way patients ask questions.
-- Don't duplicate the same text in several documents.
+If you update the clinic knowledge later, run the seed command again.
 
-### 5. Run
+---
+
+## ▶️ Run the Project
+
+Start the application:
 
 ```bash
 npm start
 ```
 
-Open `http://localhost:<PORT>` and log in with your phone number.
+For development:
 
-### Available scripts
+```bash
+npm run dev
+```
 
-| Command | What it does |
-|---|---|
-| `npm start` | Start the server |
-| `npm run dev` | Start the server with auto-restart on file changes |
-| `npm run db:create` | Create the database |
-| `npm run db:migrate` | Create / update the tables |
-| `npm run db:migrate:undo` | Undo the last migration |
-| `npm run db:migrate:undo:all` | Drop all tables created by migrations |
-| `npm run db:reset` | Drop all tables and create them again (**deletes all data**) |
-| `npm run db:drop` | Drop the whole database |
-| `npm run seed` | Embed and store the clinic documents |
+Then open:
 
-> After `db:reset`, `db:migrate:undo:all` or `db:drop`, run `npm run seed` again to restore the knowledge base.
+```text
+http://localhost:<PORT>
+```
 
 ---
 
-## 🔌 API overview
+## 📜 Available Scripts
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/auth/register` | Send an OTP code to a phone number |
-| `POST` | `/auth/login` | Verify the OTP, set auth cookies |
-| `POST` | `/auth/logout` | Clear auth cookies |
-| `GET` | `/auth/me` | Current user |
-| `GET` `POST` | `/conversation/` | List / create conversations |
-| `GET` `PUT` `DELETE` | `/conversation/:id` | Read / rename / delete a conversation |
-| `GET` | `/message/conversation/:id` | Messages of a conversation |
-| `POST` | `/message/conversation/:id` | Send a message and get the bot's reply |
+| Command                       | Description                                   |
+| ----------------------------- | --------------------------------------------- |
+| `npm start`                   | Start the server                              |
+| `npm run dev`                 | Start the server with automatic restart       |
+| `npm run db:create`           | Create the MySQL database                     |
+| `npm run db:migrate`          | Run database migrations                       |
+| `npm run db:migrate:undo`     | Undo the last migration                       |
+| `npm run db:migrate:undo:all` | Undo all migrations                           |
+| `npm run db:reset`            | Reset the database                            |
+| `npm run db:drop`             | Drop the database                             |
+| `npm run seed`                | Generate and store clinic document embeddings |
 
-All endpoints except the `/auth` login flow require a valid access-token cookie.
-
----
-
-## ⚙️ Tuning answer quality
-
-| What | Where |
-|---|---|
-| Similarity threshold (default `0.5`) | `src/module/messages/message.controller.js` |
-| Number of documents sent to the model (default 2) | same file |
-| Number of previous messages sent as context | same file |
-| Chat model, temperature, system prompt | `src/service/ai.services.js` |
-| Embedding model | `src/service/embedding.services.js` |
-
-Log the best similarity score for a set of relevant and irrelevant questions, then pick a threshold that separates them. If you change the embedding model, re-embed all documents — vectors from different models are not comparable.
+> ⚠️ Commands such as `db:reset`, `db:migrate:undo:all` and `db:drop` can delete database data.
 
 ---
 
-## 📌 Known limitations & roadmap
+## 🔌 API Overview
 
-- Similarity is computed in Node.js over all documents. That is fine for a small knowledge base; for larger data use a vector database (pgvector, Qdrant, …).
-- Free OpenRouter models have daily/per-minute rate limits.
-- Answers are not streamed token by token.
-- No admin panel yet for managing clinic documents.
+### Authentication
 
-Ideas for next steps:
+| Method | Endpoint         | Description                             |
+| ------ | ---------------- | --------------------------------------- |
+| `POST` | `/auth/register` | Register using phone number and OTP     |
+| `POST` | `/auth/login`    | Verify OTP and authenticate user        |
+| `POST` | `/auth/logout`   | Logout and clear authentication cookies |
+| `GET`  | `/auth/me`       | Get current authenticated user          |
 
-- [ ] Admin panel to add / edit clinic documents
-- [ ] Import documents from text / PDF files
-- [ ] Streaming responses
-- [ ] Simple evaluation script with a list of test questions
-- [ ] Docker Compose (app + MySQL + Redis)
-- [ ] Rate limiting and automated tests
+### Conversations
+
+| Method   | Endpoint            | Description              |
+| -------- | ------------------- | ------------------------ |
+| `GET`    | `/conversation/`    | Get user's conversations |
+| `POST`   | `/conversation/`    | Create a conversation    |
+| `GET`    | `/conversation/:id` | Get a conversation       |
+| `PUT`    | `/conversation/:id` | Rename a conversation    |
+| `DELETE` | `/conversation/:id` | Delete a conversation    |
+
+### Messages
+
+| Method | Endpoint                    | Description                                |
+| ------ | --------------------------- | ------------------------------------------ |
+| `GET`  | `/message/conversation/:id` | Get conversation messages                  |
+| `POST` | `/message/conversation/:id` | Send a message and receive the AI response |
+
+Authentication-protected endpoints require a valid access-token cookie.
 
 ---
 
-## 🔐 Security notes
+## ⚙️ RAG Configuration
 
-- Never commit `.env`; it is listed in `.gitignore`.
-- Cookies are signed and `httpOnly`.
-- Don't store real patient data in this project without proper security review.
+Several parameters can be adjusted to control the chatbot's behavior.
+
+| Setting                       | Location                |
+| ----------------------------- | ----------------------- |
+| Similarity threshold          | `message.controller.js` |
+| Number of retrieved documents | `message.controller.js` |
+| Previous message context      | `message.controller.js` |
+| Chat model                    | `ai.services.js`        |
+| System prompt                 | `ai.services.js`        |
+| Embedding model               | `embedding.services.js` |
+
+### Similarity Threshold
+
+The similarity threshold determines whether the chatbot has enough relevant information to answer.
+
+For example:
+
+```text
+Similarity >= 0.5
+        ↓
+Relevant information found
+        ↓
+Send context to LLM
+```
+
+```text
+Similarity < 0.5
+        ↓
+Not enough relevant information
+        ↓
+Do not call LLM
+```
+
+The exact threshold should be tested against the project's own questions and knowledge base.
 
 ---
 
 ## 📸 Screenshots
 
-_Add screenshots of the login page and the chat UI here (`docs/login.png`, `docs/chat.png`)._
+### 🔐 Register
+
+The registration page allows users to start the OTP authentication process using their phone number.
+
+![Clinic AI Register](docs/register.png)
+
+---
+
+### 🔑 Login
+
+Users can authenticate using the OTP verification process.
+
+![Clinic AI Login](docs/login.png)
+
+---
+
+### 💬 Chat
+
+The main chat interface allows users to create conversations and ask questions about the clinic.
+
+![Clinic AI Chat](docs/chat.png)
+
+---
+
+## 🔒 Security
+
+* `.env` is excluded from Git using `.gitignore`
+* Authentication tokens are stored in signed `httpOnly` cookies
+* OTP codes are stored temporarily in Redis
+* Conversation access is checked against the authenticated user's ID
+* Users can only access their own conversations and messages
+* Clinic knowledge is separated from user-generated messages
+* The project should not be used with real patient data without an appropriate security and privacy review
+
+---
+
+## ⚠️ Known Limitations
+
+* Similarity search currently runs in Node.js against the stored documents.
+* This approach is suitable for a relatively small knowledge base.
+* A vector database can be introduced for larger datasets.
+* Free AI providers may have rate limits.
+* Responses are currently not streamed token by token.
+* There is currently no admin panel for managing clinic documents.
+* The chatbot is not intended to provide medical diagnosis or treatment.
+
+---
+
+## 🗺 Roadmap
+
+* [ ] Admin panel for managing clinic documents
+* [ ] Import knowledge from PDF and text files
+* [ ] Streaming AI responses
+* [ ] Automated RAG evaluation tests
+* [ ] Rate limiting
+* [ ] Automated tests
+* [ ] Vector database integration
+* [ ] Docker Compose setup
+* [ ] Voice-based clinic assistant
 
 ---
 
 ## 📄 License
 
-MIT
+This project is licensed under the MIT License.

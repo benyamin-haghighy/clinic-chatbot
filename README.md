@@ -25,7 +25,7 @@ Instead of letting an LLM guess, every question is matched against the clinic's 
 
 ## 🧠 How It Works
 
-The project uses a simple **Retrieval-Augmented Generation (RAG)** pipeline.
+The project uses a **Retrieval-Augmented Generation (RAG)** pipeline.
 
 ```text
 User Question
@@ -162,22 +162,13 @@ Before running the project, make sure you have:
 * OpenRouter API key
 * SMS provider account for OTP authentication
 
----
-
 ### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/benyamin-haghighy/clinic-chatbot.git
 cd clinic-chatbot
-```
-
-Install dependencies:
-
-```bash
 npm install
 ```
-
----
 
 ### 2. Configure Environment Variables
 
@@ -354,8 +345,6 @@ Several parameters can be adjusted to control the chatbot's behavior.
 
 The similarity threshold determines whether the chatbot has enough relevant information to answer.
 
-For example:
-
 ```text
 Similarity >= 0.5
         ↓
@@ -380,23 +369,13 @@ The exact threshold should be tested against the project's own questions and kno
 
 ### 🔐 Register
 
-The registration page allows users to start the OTP authentication process using their phone number.
-
 ![Clinic AI Register](docs/register.png)
-
----
 
 ### 🔑 Login
 
-Users can authenticate using the OTP verification process.
-
 ![Clinic AI Login](docs/login.png)
 
----
-
 ### 💬 Chat
-
-The main chat interface allows users to create conversations and ask questions about the clinic.
 
 ![Clinic AI Chat](docs/chat.png)
 
